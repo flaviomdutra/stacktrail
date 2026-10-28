@@ -1,0 +1,8 @@
+{
+  "name": "@stacktrail-example/api",
+  "private": true,
+  "dependencies": {
+    "@stacktrail-example/notifications": "workspace:*",
+    "pg": "^8.0.0"
+  }
+}

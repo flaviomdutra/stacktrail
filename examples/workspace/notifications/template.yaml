@@ -1,0 +1,12 @@
+Transform: AWS::Serverless-2016-10-31
+Resources:
+  NotificationQueue:
+    Type: AWS::SQS::Queue
+  NotificationWorker:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: python3.12
+      Handler: worker.handler
+      Environment:
+        Variables:
+          QUEUE_URL: !Ref NotificationQueue

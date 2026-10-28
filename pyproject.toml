@@ -1,0 +1,42 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "stacktrail"
+version = "0.1.0"
+description = "Trace your architecture from local repositories with an evidence-backed knowledge graph."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "Flavio Dutra" }]
+dependencies = [
+  "typer>=0.16,<1",
+  "rich>=13.9,<15",
+  "neo4j>=5.28,<7",
+  "httpx>=0.28,<1",
+  "PyYAML>=6.0.2,<7",
+  "filelock>=3.18,<4",
+  "pathspec>=0.12,<1",
+]
+
+[project.scripts]
+stacktrail = "stacktrail.cli:app"
+
+[project.optional-dependencies]
+dev = ["pytest>=8.3,<10", "ruff>=0.11,<1"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/stacktrail"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["integration: requires an explicitly configured test Neo4j database"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]

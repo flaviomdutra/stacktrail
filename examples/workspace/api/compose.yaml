@@ -1,0 +1,9 @@
+services:
+  api:
+    build: .
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgres://postgres:5432/example
+  postgres:
+    image: postgres:16
