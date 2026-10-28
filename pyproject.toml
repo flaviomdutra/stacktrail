@@ -16,7 +16,7 @@ dependencies = [
   "neo4j>=5.28,<7",
   "httpx>=0.28,<1",
   "PyYAML>=6.0.2,<7",
-  "filelock>=3.18,<4",
+  "filelock>=4.2.1,<5",
   "pathspec>=0.12,<1",
 ]
 
