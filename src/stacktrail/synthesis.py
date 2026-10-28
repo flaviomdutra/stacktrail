@@ -428,7 +428,7 @@ def update_architecture(config, store, model, sources):
                 items = result["components"]
                 if not isinstance(items, list):
                     raise ValueError("Invalid component list")
-                accepted = 0
+                accepted = set()
                 for item in items:
                     node = by_id.get(item.get("id"))
                     refs = item.get("evidence", [])
@@ -439,14 +439,15 @@ def update_architecture(config, store, model, sources):
                         and all(isinstance(r, str) and r in valid for r in refs)
                         and item.get("layer") in LAYERS
                         and isinstance(item.get("responsibility"), str)
+                        and item["responsibility"].strip()
                     ):
                         node.update(
                             responsibility=item["responsibility"][:200],
                             layer=item["layer"],
                             evidence=refs,
                         )
-                        accepted += 1
-                if by_id and accepted != len(by_id):
+                        accepted.add(node["id"])
+                if by_id and len(accepted) != len(by_id):
                     raise ValueError("Incomplete or unsupported component summaries")
                 projection["status"] = "complete"
             except (ModelError, ValueError, KeyError, TypeError, AttributeError):
