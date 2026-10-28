@@ -6,6 +6,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from urllib.parse import urlparse
 
+from dotenv import dotenv_values
+
 from stacktrail import EXTRACTOR_VERSION
 from stacktrail.models import digest
 
@@ -60,9 +62,17 @@ class Config:
 
     @property
     def password(self) -> str:
-        value = os.environ.get("STACKTRAIL_NEO4J_PASSWORD", "")
+        values = dotenv_values(self.path.resolve().parent / ".env", interpolate=False)
+        value = (
+            os.environ.get("STACKTRAIL_NEO4J_PASSWORD")
+            or os.environ.get("NEO4J_PASSWORD")
+            or values.get("STACKTRAIL_NEO4J_PASSWORD")
+            or values.get("NEO4J_PASSWORD")
+        )
         if not value:
-            raise ValueError("Set STACKTRAIL_NEO4J_PASSWORD before connecting to Neo4j.")
+            raise ValueError(
+                "Set NEO4J_PASSWORD or STACKTRAIL_NEO4J_PASSWORD in the environment or in .env beside stacktrail.toml."
+            )
         return value
 
     @property

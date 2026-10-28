@@ -28,10 +28,7 @@ cp .env.example .env
 # Edit .env and replace NEO4J_PASSWORD with your own local password.
 docker compose up -d --wait
 
-# Set this to the same password, without storing it in your shell history:
-read -rsp 'Neo4j password: ' STACKTRAIL_NEO4J_PASSWORD
-export STACKTRAIL_NEO4J_PASSWORD
-echo
+# StackTrail automatically reads NEO4J_PASSWORD from .env.
 
 stacktrail init --source ./examples/workspace
 stacktrail sync
@@ -92,8 +89,10 @@ enrichment = true
 context_chars = 12000
 ```
 
-Passwords are read exclusively from `STACKTRAIL_NEO4J_PASSWORD`. Compose reads its own password from
-`.env`; StackTrail does not load `.env`. Ollama must use a loopback endpoint in this MVP.
+Passwords are read from exported `STACKTRAIL_NEO4J_PASSWORD`, then exported `NEO4J_PASSWORD`,
+then the same keys in `.env` beside the selected `stacktrail.toml`, in that order. Values are read
+literally without shell execution or variable interpolation. No manual export is required when
+`.env` contains the Docker password. Ollama must use a loopback endpoint in this MVP.
 
 ## What is discovered
 
