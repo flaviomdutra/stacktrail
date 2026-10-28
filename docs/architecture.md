@@ -68,3 +68,22 @@ against source lines, and stored as inferred evidence.
 - Questions are independent; multi-turn conversational state is deferred.
 - Exact package matching is the first cross-repository resolver; ambiguous matches remain unresolved.
 - There are no cloud credentials, external model calls, watcher, frontend, or MCP server in the MVP.
+
+## Architectural reconstruction
+
+A separate `Architecture` record per repository persists the architectural projection and synthesis
+fingerprint. Its JSON payload contains executable units, resource relationships, model summaries, and
+supporting references; it does not replace the detailed entity graph. `sync` reconstructs changed
+repositories and reconciles proven local-package connections across repositories. Model responses
+use a constrained JSON schema and are validated against component IDs and source references.
+
+Targeted passages are selected throughout source files. Client construction, literal HTTP calls,
+explicit Compose dependencies, Docker definitions, and supported template references supply stronger
+evidence than package presence. Unknown resource identities remain separate. Nested executable
+manifests can identify additional units; test/documentation scripts are excluded from unit discovery.
+
+The default export is a layered solution diagram. Infrastructure exports preserve deployment
+containers; solution exports contract those containers into their owning application and preserve
+their dependencies. Both are logical repository-derived views, not verified production topology.
+Fully cached synchronization makes no model calls. Invalid or unavailable synthesis retains
+structured discoveries and marks reused summaries stale; status reports incomplete repositories.

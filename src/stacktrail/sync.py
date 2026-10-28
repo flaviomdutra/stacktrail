@@ -88,5 +88,10 @@ def _synchronize(config, store, model, full, progress):
         store.delete(source_id)
         report.deleted += 1
     store.reconcile()
+    if hasattr(store, "architectures"):
+        from stacktrail.synthesis import update_architecture
+
+        update_architecture(config, store, model, store.inventory())
+        report.architecture_pending = sum(a["status"] != "complete" for a in store.architectures())
     store.finish(len(report.errors))
     return report

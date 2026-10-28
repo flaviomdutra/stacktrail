@@ -54,6 +54,7 @@ class SyncReport:
     deleted: int = 0
     unchanged: int = 0
     pending: int = 0
+    architecture_pending: int = 0
     errors: list[str] = field(default_factory=list)
 
     def as_dict(self) -> dict:

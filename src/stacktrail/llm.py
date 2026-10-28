@@ -39,7 +39,7 @@ class Ollama:
         except (httpx.HTTPError, ValueError, TypeError):
             return False
 
-    def complete(self, system: str, prompt: str, structured: bool = False) -> str:
+    def complete(self, system: str, prompt: str, structured: bool | dict = False) -> str:
         body = {
             "model": self.config.model,
             "stream": False,
@@ -51,7 +51,7 @@ class Ollama:
             "options": {"temperature": 0, "num_ctx": 8192, "num_predict": 1200},
         }
         if structured:
-            body["format"] = "json"
+            body["format"] = structured if isinstance(structured, dict) else "json"
         try:
             response = httpx.post(
                 f"{self.config.ollama_url}/api/chat", json=body, timeout=120, trust_env=False

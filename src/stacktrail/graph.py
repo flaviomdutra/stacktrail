@@ -268,3 +268,27 @@ class GraphStore:
     def purge(self) -> None:
         """Used only by explicitly enabled integration tests for their unique workspace."""
         self.query("MATCH (n) WHERE n.workspace = $workspace OR n.id = $workspace DETACH DELETE n")
+
+    def architectures(self):
+        return [
+            r["a"]
+            for r in self.query("MATCH (a:Architecture {workspace: $workspace}) RETURN a {.*} AS a")
+        ]
+
+    def save_architecture(self, repository, fingerprint, projection):
+        import json
+
+        self.query(
+            "MERGE (a:Architecture {workspace: $workspace, repository: $repository}) SET a.fingerprint=$fingerprint, a.payload=$payload, a.status=$status, a.updated=$updated",
+            repository=repository,
+            fingerprint=fingerprint,
+            payload=json.dumps(projection),
+            status=projection["status"],
+            updated=now(),
+        )
+
+    def delete_architectures(self, repositories):
+        self.query(
+            "MATCH (a:Architecture {workspace:$workspace}) WHERE NOT a.repository IN $repositories DELETE a",
+            repositories=list(repositories),
+        )

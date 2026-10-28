@@ -11,8 +11,8 @@ from rich.console import Console
 from rich.table import Table
 
 from stacktrail import __version__
+from stacktrail.architecture import diagram
 from stacktrail.config import load_config
-from stacktrail.export import mermaid
 from stacktrail.graph import GraphStore
 from stacktrail.llm import ModelError, Ollama
 from stacktrail.query import answer_question
@@ -97,6 +97,10 @@ def sync(
         console.print(json.dumps(report.as_dict(), indent=2))
         if report.pending:
             console.print("Model enrichment is pending. Check Ollama and run sync again to retry.")
+        if report.architecture_pending:
+            console.print(
+                "Architecture synthesis is incomplete. Structured views remain available; run sync again to retry."
+            )
         if report.errors:
             raise typer.Exit(1)
 
@@ -109,6 +113,9 @@ def status(config: CONFIG = Path("stacktrail.toml")):
         with GraphStore(settings) as store:
             previous = store.inventory()
             summary = store.summary()
+            architectures = store.architectures()
+            summary["architecture_repositories"] = len(architectures)
+            summary["architecture_pending"] = sum(a["status"] != "complete" for a in architectures)
         current = {source.id: source for source in scan(settings)}
         from stacktrail.models import digest
 
@@ -187,6 +194,7 @@ def chat(config: CONFIG = Path("stacktrail.toml")):
 
 @app.command(name="export")
 def export_command(
+    view: Annotated[str, typer.Option(help="solution or infrastructure")] = "solution",
     config: CONFIG = Path("stacktrail.toml"),
     format_: Annotated[str, typer.Option("--format")] = "mermaid",
     output: Annotated[Path, typer.Option("--output", "-o")] = Path("architecture.md"),
@@ -201,7 +209,30 @@ def export_command(
         settings = load_config(config)
         with GraphStore(settings) as store:
             show_snapshot(store)
-            text = mermaid(store.edges(repository), store.entities(repository))
+            import json
+
+            projections = [
+                json.loads(row["payload"])
+                for row in store.architectures()
+                if repository is None
+                or row["repository"] == repository
+                or row["repository"].endswith("/" + repository)
+            ]
+            if not projections:
+                raise ValueError("No architectural model found. Run stacktrail sync first.")
+            text = diagram(
+                [e for p in projections for e in p["edges"]],
+                [n for p in projections for n in p["nodes"]],
+                view,
+            )
+            text += (
+                "\n## Synthesis status\n\n"
+                + "\n".join(
+                    f"- {p['status']}: {len(p['nodes'])} architectural elements"
+                    for p in projections
+                )
+                + "\n"
+            )
         # Do not silently overwrite source files or an existing diagram.
         with output.open("x") as handle:
             handle.write(text)

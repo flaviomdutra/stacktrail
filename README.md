@@ -142,3 +142,32 @@ The default `architecture.md` output is ignored; exports to other paths must als
 ## License
 
 StackTrail's code is licensed under [MIT](LICENSE). Neo4j and other dependencies retain their own licenses.
+
+## Architecture reconstruction
+
+`sync` also reconstructs a separate architectural model per repository in Neo4j. It identifies
+executable units, explicit infrastructure definitions, and selected client usage patterns, then asks
+Ollama to summarize component responsibilities using targeted source passages. Multiple executable
+units may be found in one repository. Installed packages alone do not establish runtime connections.
+
+Generate the two complementary views:
+
+```bash
+stacktrail export --view solution --output .stacktrail/solution.md
+stacktrail export --view infrastructure --output .stacktrail/infrastructure.md
+```
+
+The default view is `solution`. There is no evidence export view. Source evidence remains in the
+internal graph, cited answers, and references below each diagram. Solution views hide deployment-only
+containers; infrastructure views retain them. Both describe logical architecture, not verified
+production deployment. Unsupported resource identities remain unresolved rather than being merged
+by name. Mermaid appearance is intentionally simpler than a manually illustrated architecture chart.
+
+Synthesis is independent of optional per-file `[ollama].enrichment`: it analyzes selected passages per
+repository, even when file enrichment is disabled. Successful summaries are cached by source paths,
+hashes, model settings, and synthesis version. Failed or offline synthesis retains structured
+results and marks reused summaries stale. `sync` reports `architecture_pending`; export reports
+synthesis status. A subsequent `sync` retries incomplete synthesis. Repository changes invalidate the
+corresponding summary. This initial reconstruction supports package entrypoints, Docker definitions,
+SAM/CloudFormation resources, and selected database, storage, and messaging clients; arbitrary business
+flows and deployment platforms are not exhaustively understood.
